@@ -4,16 +4,31 @@ import numpy as np
 from PIL import Image
 
 RED = 0
-GREEN = 1 
+GREEN = 1
 BLUE = 2
+
+
+def cor(qtd_cor, imagem_aux):
+    nivel_cor = (256 / qtd_cor)
+    print(nivel_cor)
+    print(f'color: {qtd_cor}')
+    for i in range(qtd_cor):
+        if i == 0:
+            imagem_aux[imagem_aux <= nivel_cor] = 0
+        elif i == qtd_cor - 1:
+            imagem_aux[imagem_aux >= (nivel_cor * i)] = 255
+        else:
+            imagem_aux[(imagem_aux > ((i * nivel_cor) - 1)) &
+                       (imagem_aux < ((i + 1) * nivel_cor))] = nivel_cor * i
+
 
 st.write('## Brincando com imagens')
 
 st.sidebar.write('### Configurações')
 
-uploaded_file = st.sidebar.file_uploader("Escolha uma imagem", 
-    type=['png','jpg']
-)
+uploaded_file = st.sidebar.file_uploader("Escolha uma imagem",
+                                         type=['png', 'jpg']
+                                         )
 
 # is_black_and_white = st.sidebar.checkbox('Preto e branco?')
 
@@ -21,13 +36,12 @@ if uploaded_file is not None:
     image_source = Image.open(uploaded_file)
 
     image = np.asarray(image_source)
-    
 
     col1, col2 = st.columns(2)
 
     with col1:
-        # image_gray = np.copy(image)        
-        # image_gray = np.mean(image_gray, axis=2) / 255    
+        # image_gray = np.copy(image)
+        # image_gray = np.mean(image_gray, axis=2) / 255
         st.write('### Imagem original')
 
         st.image(image)
@@ -36,13 +50,14 @@ if uploaded_file is not None:
 
     with col2:
         pesos = [0.2126, 0.7152, 0.0722]
-        image_gray_corr = np.copy(image)   
+        image_gray_corr = np.copy(image)
         image_gray_corr = np.array(image_gray_corr * pesos, dtype=np.uint8)
-        image_gray_corr = np.array(np.sum(image_gray_corr, axis=2), dtype=np.uint8)
+        image_gray_corr = np.array(
+            np.sum(image_gray_corr, axis=2), dtype=np.uint8)
 
         st.write('### tons de cinza')
         # st.latex(r'''
-        #     Y_{linear} = 0.2126R_{linear} 
+        #     Y_{linear} = 0.2126R_{linear}
         #         + 0.7152G_{linear}
         #         + 0.0722B_{linear}
         # ''')
@@ -54,6 +69,8 @@ if uploaded_file is not None:
     )
 
     image_aux = np.copy(image_gray_corr)
+
+    cor(option, image_aux)
 
     st.write(f'## {option}'.upper())
 
@@ -72,7 +89,8 @@ if uploaded_file is not None:
         st.write('c:', c)
 
         image_aux_arr = c * (np.log(image_aux + 1))
-        image_aux = Image.fromarray(image_aux_arr.astype(np.uint8)).convert('L')
+        image_aux = Image.fromarray(
+            image_aux_arr.astype(np.uint8)).convert('L')
 
         fig, ax = plt.subplots()
         ax.hist(image_aux_arr.astype(np.uint8).flatten(), bins=20)
@@ -96,7 +114,8 @@ if uploaded_file is not None:
         st.write(f"c: {c}, gamma: {gamma}")
 
         image_aux_arr = c * ((image_aux/255) ** gamma)
-        image_aux = Image.fromarray(image_aux_arr.astype(np.uint8)).convert('L')
+        image_aux = Image.fromarray(
+            image_aux_arr.astype(np.uint8)).convert('L')
 
         fig, ax = plt.subplots()
         ax.hist(image_aux_arr.astype(np.uint8).flatten(), bins=5)
@@ -105,14 +124,13 @@ if uploaded_file is not None:
     # st.write(image_aux_arr.astype)
     st.image(image_aux)
 
-
     # elif(option == 'Transformação em (log)'):
-        
+
     #     c = st.sidebar.slider('c', 0, 130, 25)
     #     if color == 'tons de cinza':
     #         log_image_arr = c * (np.log(gray_arr + 1))
     #         image = Image.fromarray(log_image_arr).convert('L')
-    #         # image = Image.fromarray(255 - gray_arr).convert('L') 
+    #         # image = Image.fromarray(255 - gray_arr).convert('L')
     #     else:
     #         image[:,:,0] = c * (np.log(image[:,:,0] + 1))
     #         image[:,:,1] = c * (np.log(image[:,:,1] + 1))
@@ -144,5 +162,4 @@ if uploaded_file is not None:
     #     image_aux[(image_aux > 31) & (image_aux < 64)] = 32
     #     image_aux[image_aux < 32] = 0
 
-    # st.image(image_aux)    
-    
+    # st.image(image_aux)
